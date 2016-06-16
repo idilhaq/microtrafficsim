@@ -1,0 +1,10 @@
+also es geht wenn du dich daran hälst (in der reihenfolge):
+bounds (immer)
+nodes
+ways
+relations
+
+
+für ways (wieder in der reihenfolge)
+    nodes (immer)
+    tags (falls vorhanden)
