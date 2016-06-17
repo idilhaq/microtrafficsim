@@ -357,7 +357,8 @@ public class TileBasedVisualizer implements Visualizer {
         uProjection.set(view.getProjectionMatrix());
 
         for (Overlay overlay : overlays.values())
-            overlay.display(context, backbuffer);
+            if (overlay.isEnabled())
+                overlay.display(context, backbuffer);
     }
 
     @Override

@@ -5,7 +5,6 @@ import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL3;
 import microtrafficsim.core.map.Coordinate;
 import microtrafficsim.core.map.area.ISimplePolygon;
-import microtrafficsim.core.map.area.RectangleArea;
 import microtrafficsim.core.map.area.SimplePolygon;
 import microtrafficsim.core.vis.Overlay;
 import microtrafficsim.core.vis.context.RenderContext;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 
 
@@ -66,25 +66,16 @@ public class ScenarioAreaOverlay implements Overlay {
 
     public ScenarioAreaOverlay(Projection projection) {
         this.projection = projection;
-        tmpInit();
     }
 
-    // TMP initialization for tokyo-tiny, TODO: remove
-    private void tmpInit() {
-        // target.add(new RectangleArea(35.614000, 139.72120, 35.63920, 139.72508));
-        // target.add(new RectangleArea(35.614000, 139.72120, 35.61652, 139.75990));
-        // target.add(new RectangleArea(35.614000, 139.75603, 35.63920, 139.75990));
-        // target.add(new RectangleArea(35.636677, 139.72120, 35.63920, 139.75990));
+    public void setStartPolygons(Collection<SimplePolygon> start) {
+        this.start.clear();
+        this.start.addAll(start);
+    }
 
-        start.add(new RectangleArea(35.6140, 139.72120, 35.63920, 139.75990));
-
-        target.add(new SimplePolygon(new Coordinate[]{
-                new Coordinate(35.61400, 139.72120),
-                new Coordinate(35.63920, 139.72120),
-                new Coordinate(35.61652, 139.72508),
-                new Coordinate(35.61652, 139.75990),
-                new Coordinate(35.61400, 139.75990)
-        }));
+    public void setEndPolygons(Collection<SimplePolygon> end) {
+        this.target.clear();
+        this.target.addAll(end);
     }
 
 

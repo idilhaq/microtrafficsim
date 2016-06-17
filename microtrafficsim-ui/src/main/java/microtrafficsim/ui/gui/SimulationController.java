@@ -8,6 +8,7 @@ import microtrafficsim.core.simulation.Simulation;
 import microtrafficsim.core.simulation.configs.SimulationConfig;
 import microtrafficsim.core.vis.UnsupportedFeatureException;
 import microtrafficsim.core.vis.input.KeyCommand;
+import microtrafficsim.core.vis.simulation.ScenarioAreaOverlay;
 import microtrafficsim.core.vis.simulation.SpriteBasedVehicleOverlay;
 import microtrafficsim.core.vis.simulation.VehicleOverlay;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
@@ -28,7 +29,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -41,14 +41,18 @@ public class SimulationController implements GUIController {
     // general
     private GUIState state, previousState;
     private StreetGraph streetgraph;
+
     // logic
     private final SimulationConfig config;
     private final SimulationConstructor simulationConstructor;
     private Simulation simulation;
+
     // visualization
     private MapViewer mapviewer;
-    private VehicleOverlay overlay;
+    private VehicleOverlay vehicleOverlay;
+    private ScenarioAreaOverlay scenarioOverlay;
     private File currentDirectory;
+
     // frame/gui
     private final JFrame frame;
     private final MTSMenuBar menubar;
@@ -67,16 +71,22 @@ public class SimulationController implements GUIController {
                                 MapViewer mapviewer,
                                 String title) {
         super();
+
         // general
         state = GUIState.RAW;
         previousState = null;
+
         // logic
         config = new SimulationConfig();
         this.simulationConstructor = simulationConstructor;
+
         // visualization
         this.mapviewer = mapviewer;
-        overlay = new SpriteBasedVehicleOverlay(TileBasedMapViewer.PROJECTION);
+        vehicleOverlay = new SpriteBasedVehicleOverlay(TileBasedMapViewer.PROJECTION);
+        scenarioOverlay = new ScenarioAreaOverlay(TileBasedMapViewer.PROJECTION);
+        scenarioOverlay.disable();
         currentDirectory = new File(System.getProperty("user.dir"));
+
         // frame/gui
         frame = new JFrame(title);
         menubar = new MTSMenuBar();
@@ -154,6 +164,8 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case NEW_SIM:
+                scenarioOverlay.enable();
+                // TODO: set scenario overlay
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -166,6 +178,7 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case ACCEPT:
+                scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
                         if (updateSimulationConfig()) {
@@ -184,6 +197,7 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case CANCEL:
+                scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
                     case SIM_NEW:
@@ -193,6 +207,8 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case EDIT_SIM:
+                scenarioOverlay.enable();
+                // TODO: set scenario overlay
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -347,7 +363,8 @@ public class SimulationController implements GUIController {
         preferences.setLocationRelativeTo(null); // center on screen; close to setVisible
         preferences.setVisible(false);
 
-        mapviewer.addOverlay(0, overlay);
+        mapviewer.addOverlay(0, vehicleOverlay);
+        mapviewer.addOverlay(1, scenarioOverlay);
 
     /* setup JFrame */
         menubar.menuMap.addActions(this);
@@ -411,8 +428,8 @@ public class SimulationController implements GUIController {
         frame.setTitle("Calculating vehicle routes 0%");
 
     /* create the simulation */
-        simulation = simulationConstructor.instantiate(config, streetgraph, overlay.getVehicleFactory());
-        overlay.setSimulation(simulation);
+        simulation = simulationConstructor.instantiate(config, streetgraph, vehicleOverlay.getVehicleFactory());
+        vehicleOverlay.setSimulation(simulation);
 
     /* initialize the simulation */
         simulation.prepare(currentInPercent -> frame.setTitle("Calculating vehicle routes " + currentInPercent + "%"));
@@ -423,7 +440,7 @@ public class SimulationController implements GUIController {
     private void cleanupSimulation() {
         if (streetgraph != null)
             streetgraph.reset();
-        overlay.setSimulation(null);
+        vehicleOverlay.setSimulation(null);
         simulation = null;
         menubar.menuLogic.simIsPaused(true);
     }
