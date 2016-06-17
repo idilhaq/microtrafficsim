@@ -6,12 +6,12 @@ import microtrafficsim.core.logic.StreetGraph;
 import microtrafficsim.core.parser.OSMParser;
 import microtrafficsim.core.simulation.Simulation;
 import microtrafficsim.core.simulation.configs.SimulationConfig;
-import microtrafficsim.core.vis.SimulationOverlay;
 import microtrafficsim.core.vis.UnsupportedFeatureException;
 import microtrafficsim.core.vis.input.KeyCommand;
 import microtrafficsim.core.vis.simulation.SpriteBasedVehicleOverlay;
-import microtrafficsim.ui.preferences.PrefElement;
+import microtrafficsim.core.vis.simulation.VehicleOverlay;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
+import microtrafficsim.ui.preferences.PrefElement;
 import microtrafficsim.ui.preferences.impl.PreferencesFrame;
 import microtrafficsim.ui.vis.MapViewer;
 import microtrafficsim.ui.vis.TileBasedMapViewer;
@@ -47,7 +47,7 @@ public class SimulationController implements GUIController {
   private Simulation simulation;
   // visualization
   private MapViewer mapviewer;
-  private SimulationOverlay overlay;
+  private VehicleOverlay overlay;
   private File currentDirectory;
   // frame/gui
   private final JFrame frame;

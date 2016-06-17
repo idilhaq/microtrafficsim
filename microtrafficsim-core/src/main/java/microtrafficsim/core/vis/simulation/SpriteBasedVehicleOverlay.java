@@ -7,7 +7,6 @@ import microtrafficsim.core.frameworks.vehicle.LogicVehicleEntity;
 import microtrafficsim.core.logic.DirectedEdge;
 import microtrafficsim.core.map.Coordinate;
 import microtrafficsim.core.simulation.Simulation;
-import microtrafficsim.core.vis.SimulationOverlay;
 import microtrafficsim.core.vis.context.RenderContext;
 import microtrafficsim.core.vis.map.projections.Projection;
 import microtrafficsim.core.vis.opengl.BufferStorage;
@@ -32,7 +31,7 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 
-public class SpriteBasedVehicleOverlay implements SimulationOverlay {
+public class SpriteBasedVehicleOverlay implements VehicleOverlay {
 
 	private final static Color DEFAULT_FG_COLOR = Color.fromRGBA(0xCC4C1AF0);
 
@@ -56,6 +55,9 @@ public class SpriteBasedVehicleOverlay implements SimulationOverlay {
 
 	private Simulation simulation;
 	private Projection projection;
+
+	private OrthographicView view;
+
 	private final Supplier<IVisualizationVehicle> vehicleFactory;
 	
 	private int sprite;
@@ -92,10 +94,15 @@ public class SpriteBasedVehicleOverlay implements SimulationOverlay {
 
 		this.enabled = true;
 	}
+
+
+	public void setView(OrthographicView view) {
+		this.view = view;
+	}
 	
 
 	@Override
-	public void init(RenderContext context, View view) {
+	public void init(RenderContext context) {
 		GL3 gl = context.getDrawable().getGL().getGL3();
 		
 		Shader vs = Shader.create(gl, GL3.GL_VERTEX_SHADER, "spritebased.vehicle_overlay.vs")
@@ -196,10 +203,10 @@ public class SpriteBasedVehicleOverlay implements SimulationOverlay {
 	}
 
 	@Override
-	public void resize(RenderContext context, View view) {}
+	public void resize(RenderContext context) {}
 
 	@Override
-	public void display(RenderContext context, View view, MapBuffer map) {
+	public void display(RenderContext context, MapBuffer map) {
         if (!enabled || simulation == null) return;
 		GL3 gl = context.getDrawable().getGL().getGL3();
 
