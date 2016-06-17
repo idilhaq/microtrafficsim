@@ -11,6 +11,7 @@ import microtrafficsim.core.vis.map.projections.Projection;
 import microtrafficsim.osmcreator.Constants;
 import microtrafficsim.osmcreator.graph.Crossroad;
 import microtrafficsim.osmcreator.graph.Street;
+import microtrafficsim.osmcreator.graph.StreetDirection;
 import microtrafficsim.utils.id.BasicLongIDGenerator;
 import microtrafficsim.utils.id.LongIDGenerator;
 
@@ -54,33 +55,64 @@ public class OSMCreator {
                     nodes.add(street.destination);
                 }
                 LongIDGenerator longIDGenerator = new BasicLongIDGenerator();
-                BiFunction<Double, Double, Coordinate> unproject = transformation(
-                        new Bounds(0, 0, Constants.INITIALZE_SCREEN_HEIGHT, Constants.INITIALZE_SCREEN_WIDTH),
-                        new Bounds(9.4292700, 48.9392200d, 9.4346300, 9.4292700)
-                );
-
-                /* transformation */
+                Bounds screenBounds = new Bounds(Constants.INITIALZE_SCREEN_HEIGHT, 0, 0, Constants.INITIALZE_SCREEN_WIDTH);
+                Bounds mapBounds = new Bounds(9.4292700, 48.9392200, 9.4346300, 48.941700);
+                BiFunction<Double, Double, Coordinate> transform = transformation(screenBounds, mapBounds);
 
                 /* write */
                 writer.writeStartDocument();
                 writer.writeStartElement("osm");
 
                 writer.writeStartElement("bounds");
-                writer.writeAttribute("minlat", "48.9392200");
-                writer.writeAttribute("minlon=", "9.4292700");
-                writer.writeAttribute("maxlat=", "48.9417000");
-                writer.writeAttribute("maxlon=", "9.4346300");
+                writer.writeAttribute("minlat", "" + mapBounds.minlat);
+                writer.writeAttribute("minlon=", "" + mapBounds.minlon);
+                writer.writeAttribute("maxlat=", "" + mapBounds.maxlat);
+                writer.writeAttribute("maxlon=", "" + mapBounds.maxlon);
                 writer.writeEndElement();
 
+                /* nodes */
                 for (Crossroad node : nodes) {
+                    node.ID = longIDGenerator.next();
+
                     writer.writeStartElement("node");
-                    writer.writeAttribute("id", "" + longIDGenerator.next());
+                    writer.writeAttribute("id", "" + node.ID);
                     writer.writeAttribute("visible", "true");
-                    Coordinate coordinate = unproject.apply(node.getTranslateX(), node.getTranslateY());
+                    Coordinate coordinate = transform.apply(node.getTranslateY(), node.getTranslateX());
                     writer.writeAttribute("lat", "" + coordinate.lat);
                     writer.writeAttribute("lon", "" + coordinate.lon);
-                    System.out.println(node.getTranslateX());
-                    System.out.println(node.getTranslateY());
+                    writer.writeEndElement();
+                }
+
+                /* streets */
+                for (Street street : streets) {
+                    street.ID = longIDGenerator.next();
+
+                    writer.writeStartElement("way");
+                    writer.writeAttribute("id", "" + street.ID);
+                    writer.writeAttribute("visible", "true");
+
+                    writer.writeStartElement("nd");
+                    writer.writeAttribute("ref", "" + street.origin.ID);
+                    writer.writeEndElement();
+
+                    writer.writeStartElement("nd");
+                    writer.writeAttribute("ref", "" + street.destination.ID);
+                    writer.writeEndElement();
+
+                    writer.writeStartElement("tag");
+                    writer.writeAttribute("k", "oneway");
+                    writer.writeAttribute("v", (
+                            street.getStreetDirectionFrom(street.origin) == StreetDirection.BIDIRECTIONAL)
+                            ? "yes"
+                            : "no");
+                    writer.writeEndElement();
+
+                    // todo
+//                    writer.writeStartElement("tag");
+//                    writer.writeAttribute("k", "highway");
+//                    writer.writeAttribute("v", "residential");
+//                    writer.writeEndElement();
+
                     writer.writeEndElement();
                 }
 
@@ -95,23 +127,27 @@ public class OSMCreator {
         }
     }
 
+    /**
+     * todo HARDCODED! and not unprojected at all
+     */
     private BiFunction<Double, Double, Coordinate> transformation(Bounds from, Bounds to) {
-        /* unscale from start bounds */
-        double transformX = 1 / (from.maxlon - from.minlon);
-        double transformY = -1 / (from.maxlat - from.minlat);
+        return (lat, lon) -> {
+            double fromWidth = Math.abs(from.maxlon - from.minlon);
+            double fromHeight = Math.abs(from.maxlat - from.minlat);
+            double toWidth = Math.abs(to.maxlon - to.minlon);
+            double toHeight = Math.abs(to.maxlat - to.minlat);
 
-        /* scale to new bounds */
-        transformX *= (to.maxlon - to.minlon);
-        transformY *= (to.maxlat - to.minlat);
+            /* unscale */
+            lat = 1 - lat / fromHeight;
+            lon = lon / fromWidth;
 
-        /* translate */
-        transformX += to.minlon;
-        transformY += to.minlat;
+            /* scale */
+            lat = lat * toHeight + to.minlat;
+            lon = lon * toWidth + to.minlon;
 
-        /* finish */
-        final double factorX = transformX;
-        final double factorY = transformY;
-        return (x, y) -> new Coordinate(factorY * y, factorX * x);
+            /* finish */
+            return new Coordinate(lat, lon);
+        };
     }
 
     private File askForDataDirectory(Stage stage) {

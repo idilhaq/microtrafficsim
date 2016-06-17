@@ -552,7 +552,7 @@ public class Main extends Application implements UserInputController {
         crossroad.addEventHandler(MouseEvent.MOUSE_PRESSED,
                 mouseEvent -> transiate(UserEvent.CLICK_CROSSROAD, mouseEvent, crossroad));
 //    crossroad.addEventHandler(MouseEvent.MOUSE_CLICKED,
-//            mouseEvent -> transiate(UserEvent.CLICK_CROSSROAD, mouseEvent, crossroad));
+//            mouseEvent -> transiate(UserEvent.PRESS_CROSSROAD, mouseEvent, crossroad));
 
         /* bind for better look */
         DoubleProperty scaleX = new SimpleDoubleProperty();

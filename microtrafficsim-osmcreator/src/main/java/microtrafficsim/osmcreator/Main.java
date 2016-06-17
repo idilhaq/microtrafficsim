@@ -12,11 +12,8 @@ import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import microtrafficsim.math.MathUtils;
-import microtrafficsim.math.Rect2d;
 import microtrafficsim.osmcreator.graph.Crossroad;
 import microtrafficsim.osmcreator.graph.OSMGraphModel;
-import microtrafficsim.osmcreator.graph.OSMGraphPane;
 import microtrafficsim.osmcreator.graph.Street;
 import microtrafficsim.osmcreator.graph.crossroads.GoldCrossroad;
 import microtrafficsim.osmcreator.graph.streets.GoldStreet;
@@ -34,6 +31,9 @@ import java.util.Set;
  * @author Dominic Parga Cacheiro
  */
 public class Main extends Application implements UserInputController {
+
+    /* quick fix */
+    private boolean selectedCrossroadWasSelected;
 
     private Pane graph;
     private Group crossroadGroup;
@@ -93,10 +93,9 @@ public class Main extends Application implements UserInputController {
 
 
         /* prepare crossroad group for dragging groups of crossroads */
-        crossroadGroup.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-                mouseEvent -> transiate(UserEvent.MOVE_CROSSROADS, mouseEvent, null));
-        crossroadGroup.addEventHandler(MouseEvent.MOUSE_RELEASED,
-                mouseEvent -> transiate(UserEvent.FINISHED_MOVING_CROSSROADS, mouseEvent, null));
+        // todo remove
+//        crossroadGroup.addEventHandler(MouseEvent.MOUSE_DRAGGED,
+//                mouseEvent -> transiate(UserEvent.MOVE_CROSSROADS, mouseEvent, null));
 
 
 
@@ -208,8 +207,9 @@ public class Main extends Application implements UserInputController {
                 break;
 
 
-            case CLICK_CROSSROAD:
+            case PRESS_CROSSROAD:
                 Crossroad newCrossroad = (Crossroad)clickedNode;
+                selectedCrossroadWasSelected = newCrossroad.isSelected();
                 switch (userState) {
                     case READY:
                         selection.select(newCrossroad);
@@ -223,22 +223,12 @@ public class Main extends Application implements UserInputController {
                     case SELECTION_ACTIVE_DILIGENT:
                         return;
                     case CROSSROADS_SELECTED:
-                        if (!newCrossroad.isSelected()) {
-                            selection.unselectAll();
-                            selection.select(newCrossroad);
-                            setUserState(UserState.CROSSROADS_SELECTED);
-                        }
+                        selection.select(newCrossroad);
+                        setUserState(UserState.CROSSROADS_SELECTED);
                         break;
                     case CROSSROADS_SELECTED_DILIGENT:
-                        if (!newCrossroad.isSelected()) {
-                            createStreetsTo(newCrossroad);
-                            selection.unselectAll();
-                            selection.select(newCrossroad);
-                            setUserState(UserState.CROSSROADS_SELECTED_DILIGENT);
-                        } else {
-                            createStreetsTo(newCrossroad);
-                            setUserState(UserState.CROSSROADS_SELECTED_DILIGENT);
-                        }
+                        selection.select(newCrossroad);
+                        setUserState(UserState.CROSSROADS_SELECTED_DILIGENT);
                         break;
                     case MOVING_ACTIVE:
                     case MOVING_ACTIVE_DILIGENT:
@@ -265,6 +255,11 @@ public class Main extends Application implements UserInputController {
                     case SELECTION_ACTIVE_DILIGENT:
                         return;
                     case CROSSROADS_SELECTED:
+                        newCrossroad = (Crossroad)clickedNode;
+                        if (!selectedCrossroadWasSelected) {
+                            selection.unselectAll();
+                            selection.select(newCrossroad);
+                        }
                         MouseEvent mouseEvent = (MouseEvent)inputEvent;
                         selection.getSelectedItems().forEach(crossroad -> {
                             crossroad.prepareDragging(graph, mouseEvent.getSceneX(), mouseEvent.getSceneY());
@@ -272,6 +267,11 @@ public class Main extends Application implements UserInputController {
                         setUserState(UserState.MOVING_ACTIVE);
                         break;
                     case CROSSROADS_SELECTED_DILIGENT:
+                        newCrossroad = (Crossroad)clickedNode;
+                        if (!selectedCrossroadWasSelected) {
+                            selection.unselectAll();
+                            selection.select(newCrossroad);
+                        }
                         mouseEvent = (MouseEvent)inputEvent;
                         selection.getSelectedItems().forEach(crossroad -> {
                             crossroad.prepareDragging(graph, mouseEvent.getSceneX(), mouseEvent.getSceneY());
@@ -292,15 +292,26 @@ public class Main extends Application implements UserInputController {
                 break;
 
 
-            case FINISHED_MOVING_CROSSROADS:
+            case RELEASE_CROSSROAD:
                 switch (userState) {
                     case READY:
                     case READY_DILIGENT:
                     case SELECTION_ACTIVE:
                     case SELECTION_ACTIVE_DILIGENT:
-                    case CROSSROADS_SELECTED:
-                    case CROSSROADS_SELECTED_DILIGENT:
                         return;
+                    case CROSSROADS_SELECTED:
+                        newCrossroad = (Crossroad)clickedNode;
+                        selection.unselectAll();
+                        selection.select(newCrossroad);
+                        setUserState(UserState.CROSSROADS_SELECTED);
+                        break;
+                    case CROSSROADS_SELECTED_DILIGENT:
+                        newCrossroad = (Crossroad)clickedNode;
+                        createStreetsTo(newCrossroad);
+                        selection.unselectAll();
+                        selection.select(newCrossroad);
+                        setUserState(UserState.CROSSROADS_SELECTED_DILIGENT);
+                        break;
                     case MOVING_ACTIVE:
                         setUserState(UserState.CROSSROADS_SELECTED);
                         break;
@@ -540,9 +551,11 @@ public class Main extends Application implements UserInputController {
 
         /* add event handlers */
         crossroad.addEventHandler(MouseEvent.MOUSE_PRESSED,
-                mouseEvent -> transiate(UserEvent.CLICK_CROSSROAD, mouseEvent, crossroad));
-//    crossroad.addEventHandler(MouseEvent.MOUSE_CLICKED,
-//            mouseEvent -> transiate(UserEvent.CLICK_CROSSROAD, mouseEvent, crossroad));
+                mouseEvent -> transiate(UserEvent.PRESS_CROSSROAD, mouseEvent, crossroad));
+        crossroad.addEventHandler(MouseEvent.MOUSE_DRAGGED,
+                mouseEvent -> transiate(UserEvent.MOVE_CROSSROADS, mouseEvent, crossroad));
+        crossroad.addEventHandler(MouseEvent.MOUSE_RELEASED,
+                mouseEvent -> transiate(UserEvent.RELEASE_CROSSROAD, mouseEvent, crossroad));
 
         /* bind for better look */
         DoubleProperty scaleX = new SimpleDoubleProperty();

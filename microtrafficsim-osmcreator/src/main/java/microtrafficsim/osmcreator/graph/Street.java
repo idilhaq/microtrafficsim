@@ -86,6 +86,7 @@ public abstract class Street extends Arrow implements ColoredSelectable {
     private final Binded binded;
     private StreetDirection direction;
     private boolean isSelected;
+    public long ID;
 
     /**
      * NOTE: INCLUSIVE POSITION BINDING!

@@ -23,6 +23,7 @@ public abstract class Crossroad extends Circle implements Draggable, ColoredSele
 
     private Map<Street, Street> streets;
     private boolean isSelected;
+    public long ID;
 
     public Crossroad(double x, double y) {
         super(0, 0, Constants.CROSSROAD_RADIUS);

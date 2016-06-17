@@ -5,9 +5,9 @@ package microtrafficsim.osmcreator.user.controller;
  */
 public enum UserEvent {
   CLICK_SCENE,
-  CLICK_CROSSROAD,
+  PRESS_CROSSROAD,
   MOVE_CROSSROADS,
-  FINISHED_MOVING_CROSSROADS,
+  RELEASE_CROSSROAD,
   START_SELECTION,
   HOLD_SELECTION,
   STOP_SELECTION,

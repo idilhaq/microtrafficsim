@@ -3,6 +3,7 @@ package ZZZ_NEU_microtrafficsim.osmcreator.geometry;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.Event;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import microtrafficsim.core.vis.map.projections.MercatorProjection;
