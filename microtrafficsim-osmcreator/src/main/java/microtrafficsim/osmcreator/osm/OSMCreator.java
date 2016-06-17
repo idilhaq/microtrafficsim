@@ -1,6 +1,5 @@
 package microtrafficsim.osmcreator.osm;
 
-import ZZZ_NEU_microtrafficsim.osmcreator.geometry.GraphPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -8,6 +7,7 @@ import microtrafficsim.core.map.Bounds;
 import microtrafficsim.core.map.Coordinate;
 import microtrafficsim.core.vis.map.projections.MercatorProjection;
 import microtrafficsim.core.vis.map.projections.Projection;
+import microtrafficsim.math.Vec2d;
 import microtrafficsim.osmcreator.Constants;
 import microtrafficsim.osmcreator.graph.Crossroad;
 import microtrafficsim.osmcreator.graph.Street;
@@ -33,6 +33,7 @@ import java.util.function.BiFunction;
 public class OSMCreator {
 
     private File currentDirectory;
+    private Projection projection = new MercatorProjection();
 
     public OSMCreator() {
         currentDirectory = new File(System.getProperty("user.dir"));
@@ -55,9 +56,9 @@ public class OSMCreator {
                     nodes.add(street.destination);
                 }
                 LongIDGenerator longIDGenerator = new BasicLongIDGenerator();
-                Bounds screenBounds = new Bounds(Constants.INITIALZE_SCREEN_HEIGHT, 0, 0, Constants.INITIALZE_SCREEN_WIDTH);
+                Bounds screenBounds = new Bounds(0, 0, Constants.INITIALZE_SCREEN_HEIGHT, Constants.INITIALZE_SCREEN_WIDTH);
                 Bounds mapBounds = new Bounds(9.4292700, 48.9392200, 9.4346300, 48.941700);
-                BiFunction<Double, Double, Coordinate> transform = transformation(screenBounds, mapBounds);
+                BiFunction<Double, Double, Vec2d> transform = transformation(screenBounds, mapBounds);
 
                 /* write */
                 writer.writeStartDocument();
@@ -65,9 +66,9 @@ public class OSMCreator {
 
                 writer.writeStartElement("bounds");
                 writer.writeAttribute("minlat", "" + mapBounds.minlat);
-                writer.writeAttribute("minlon=", "" + mapBounds.minlon);
-                writer.writeAttribute("maxlat=", "" + mapBounds.maxlat);
-                writer.writeAttribute("maxlon=", "" + mapBounds.maxlon);
+                writer.writeAttribute("minlon", "" + mapBounds.minlon);
+                writer.writeAttribute("maxlat", "" + mapBounds.maxlat);
+                writer.writeAttribute("maxlon", "" + mapBounds.maxlon);
                 writer.writeEndElement();
 
                 /* nodes */
@@ -77,7 +78,9 @@ public class OSMCreator {
                     writer.writeStartElement("node");
                     writer.writeAttribute("id", "" + node.ID);
                     writer.writeAttribute("visible", "true");
-                    Coordinate coordinate = transform.apply(node.getTranslateY(), node.getTranslateX());
+                    Vec2d pos = transform.apply(node.getTranslateY(), node.getTranslateX());
+//                    Coordinate coordinate = projection.unproject(pos);
+                    Coordinate coordinate = new Coordinate(pos.y, pos.x);
                     writer.writeAttribute("lat", "" + coordinate.lat);
                     writer.writeAttribute("lon", "" + coordinate.lon);
                     writer.writeEndElement();
@@ -107,11 +110,10 @@ public class OSMCreator {
                             : "no");
                     writer.writeEndElement();
 
-                    // todo
-//                    writer.writeStartElement("tag");
-//                    writer.writeAttribute("k", "highway");
-//                    writer.writeAttribute("v", "residential");
-//                    writer.writeEndElement();
+                    writer.writeStartElement("tag");
+                    writer.writeAttribute("k", "highway");
+                    writer.writeAttribute("v", street.getStreetType().osmname);
+                    writer.writeEndElement();
 
                     writer.writeEndElement();
                 }
@@ -130,7 +132,7 @@ public class OSMCreator {
     /**
      * todo HARDCODED! and not unprojected at all
      */
-    private BiFunction<Double, Double, Coordinate> transformation(Bounds from, Bounds to) {
+    private BiFunction<Double, Double, Vec2d> transformation(Bounds from, Bounds to) {
         return (lat, lon) -> {
             double fromWidth = Math.abs(from.maxlon - from.minlon);
             double fromHeight = Math.abs(from.maxlat - from.minlat);
@@ -146,7 +148,7 @@ public class OSMCreator {
             lon = lon * toWidth + to.minlon;
 
             /* finish */
-            return new Coordinate(lat, lon);
+            return new Vec2d(lat, lon);
         };
     }
 

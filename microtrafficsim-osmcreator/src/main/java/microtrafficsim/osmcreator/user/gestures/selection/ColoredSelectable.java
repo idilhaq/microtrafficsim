@@ -10,4 +10,5 @@ public interface ColoredSelectable extends Selectable {
     Color getStrokeColorSelected();
     Color getColorUnselected();
     Color getStrokeColorUnselected();
+    void refreshLook();
 }

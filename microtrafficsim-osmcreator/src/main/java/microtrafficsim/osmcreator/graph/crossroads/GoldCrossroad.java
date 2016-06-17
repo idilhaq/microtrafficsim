@@ -27,7 +27,7 @@ public class GoldCrossroad extends Crossroad {
 
     @Override
     public Color getStrokeColorSelected() {
-        return Constants.CROSSROAD_STROKE_COLOR_SEL;
+        return Constants.CROSSROAD_COLOR_SEL;
     }
 
     @Override
@@ -37,6 +37,6 @@ public class GoldCrossroad extends Crossroad {
 
     @Override
     public Color getStrokeColorUnselected() {
-        return Constants.CROSSROAD_STROKE_COLOR_UNSEL;
+        return Constants.CROSSROAD_COLOR_UNSEL;
     }
 }

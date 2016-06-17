@@ -114,7 +114,7 @@ public class SimulationController implements GUIController {
     }
 
     @Override
-    public synchronized void transiate(GUIEvent event, File file) {
+    public void transiate(GUIEvent event, File file) {
         logger.debug("GUIState before transiate = GUIState." + state);
         logger.debug("GUIEvent called           = GUIEvent." + event);
         switch (event) {
@@ -293,8 +293,6 @@ public class SimulationController implements GUIController {
     }
 
     private void updateMenuBar() {
-        System.err.println("state=" + state);
-
         switch (state) {
             case RAW: /*---------------------------------------------*/
             case PARSING: /*-----------------------------------------*/
@@ -510,7 +508,7 @@ public class SimulationController implements GUIController {
     }
 
     private void asyncParseAndShow(File file) {
-        new Thread(() -> {
+//        new Thread(() -> {
             String oldTitle = frame.getTitle();
             frame.setTitle("Parsing new map, please wait...");
 
@@ -534,7 +532,7 @@ public class SimulationController implements GUIController {
                 e.printStackTrace();
                 Runtime.getRuntime().halt(1);
             }
-        }).start();
+//        }).start();
     }
 
     /*
