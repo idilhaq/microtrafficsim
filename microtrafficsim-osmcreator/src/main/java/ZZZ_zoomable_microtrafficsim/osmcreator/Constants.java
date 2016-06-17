@@ -1,4 +1,4 @@
-package microtrafficsim.osmcreator;
+package ZZZ_zoomable_microtrafficsim.osmcreator;
 
 import javafx.scene.paint.Color;
 
@@ -7,10 +7,8 @@ import javafx.scene.paint.Color;
  */
 public final class Constants {
 
-//    public static final int INITIALZE_SCREEN_WIDTH = 1200;
-//    public static final int INITIALZE_SCREEN_HEIGHT = 675;
-    public static final int INITIALZE_SCREEN_WIDTH = 1600;
-    public static final int INITIALZE_SCREEN_HEIGHT = 900;
+    public static final int INITIALZE_SCREEN_WIDTH = 1200;
+    public static final int INITIALZE_SCREEN_HEIGHT = 675;
     public static final int PAUSE_TRANSITION_MILLIS = 80;
 
     public static final int METERS_PER_PIXEL = 1;

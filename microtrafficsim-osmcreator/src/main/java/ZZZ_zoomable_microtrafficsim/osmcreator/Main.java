@@ -1,5 +1,18 @@
-package microtrafficsim.osmcreator;
+package ZZZ_zoomable_microtrafficsim.osmcreator;
 
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.Crossroad;
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.OSMGraphModel;
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.OSMGraphPane;
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.Street;
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.crossroads.GoldCrossroad;
+import ZZZ_zoomable_microtrafficsim.osmcreator.graph.streets.GoldStreet;
+import ZZZ_zoomable_microtrafficsim.osmcreator.osm.OSMCreator;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.controller.UserEvent;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.controller.UserInputController;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.controller.UserState;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.gestures.selection.Selectable;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.gestures.selection.Selection;
+import ZZZ_zoomable_microtrafficsim.osmcreator.user.gestures.selection.impl.RubberBandSelection;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
@@ -9,24 +22,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.*;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import microtrafficsim.math.MathUtils;
-import microtrafficsim.math.Rect2d;
-import microtrafficsim.osmcreator.graph.Crossroad;
-import microtrafficsim.osmcreator.graph.OSMGraphModel;
-import microtrafficsim.osmcreator.graph.OSMGraphPane;
-import microtrafficsim.osmcreator.graph.Street;
-import microtrafficsim.osmcreator.graph.crossroads.GoldCrossroad;
-import microtrafficsim.osmcreator.graph.streets.GoldStreet;
-import microtrafficsim.osmcreator.osm.OSMCreator;
-import microtrafficsim.osmcreator.user.controller.UserEvent;
-import microtrafficsim.osmcreator.user.controller.UserInputController;
-import microtrafficsim.osmcreator.user.controller.UserState;
-import microtrafficsim.osmcreator.user.gestures.selection.Selectable;
-import microtrafficsim.osmcreator.user.gestures.selection.Selection;
-import microtrafficsim.osmcreator.user.gestures.selection.impl.RubberBandSelection;
 
 import java.util.Set;
 
@@ -35,7 +33,7 @@ import java.util.Set;
  */
 public class Main extends Application implements UserInputController {
 
-    private Pane graph;
+    private OSMGraphPane graph;
     private Group crossroadGroup;
     private Group streetGroup;
     // model
@@ -75,20 +73,11 @@ public class Main extends Application implements UserInputController {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("MicroTrafficSim - OSM creator");
-        graph = new Pane();
+        graph = new OSMGraphPane();
         crossroadGroup = new Group();
         streetGroup = new Group();
         graph.getChildren().add(crossroadGroup);
         crossroadGroup.getChildren().add(streetGroup);
-
-
-
-        /* set graph */
-        double width = Constants.INITIALZE_SCREEN_WIDTH;
-        double height = Constants.INITIALZE_SCREEN_HEIGHT;
-        graph.setPrefSize(width, height);
-        graph.setMinSize(width, height);
-        graph.setMaxSize(width, height);
 
 
 
@@ -117,9 +106,29 @@ public class Main extends Application implements UserInputController {
             if (keyEvent.getCode().equals(KeyCode.BACK_SPACE))
                 transiate(UserEvent.DELETE, keyEvent, null);
             else if (keyEvent.getCode().equals(KeyCode.S))
-                osmcreator.createOSMFile(primaryStage, graph, model.getStreets());
+                osmcreator.createOSMFile(primaryStage, model.getStreets());
         });
+        scene.addEventHandler(ScrollEvent.ANY, scrollEvent -> {
+            /* save and clamp new scale */
+            double oldZoomLevel = zoomLevel;
+            zoomLevel = MathUtils.clamp(zoomLevel + scrollEvent.getDeltaY() * Constants.ZOOM_LEVEL_FACTOR,
+                    Constants.MIN_ZOOM_LEVEL,
+                    Constants.MAX_ZOOM_LEVEL);
+            double scale = Math.pow(2, zoomLevel);
+            double oldScale = graph.getScaleX();
 
+            /* save delta depending on mouse movement */
+            double dx = (scrollEvent.getSceneX() - (graph.getBoundsInParent().getWidth()/2 + graph.getBoundsInParent().getMinX()));
+            double dy = (scrollEvent.getSceneY() - (graph.getBoundsInParent().getHeight()/2 + graph.getBoundsInParent().getMinY()));
+
+            /* update scale */
+            graph.setScaleX(scale);
+            graph.setScaleY(scale);
+
+            /* update pivot */
+            graph.setTranslateX(graph.getTranslateX() - (scale / oldScale - 1) * dx);
+            graph.setTranslateY(graph.getTranslateY() - (scale / oldScale - 1) * dy);
+        });
 
 
         /* prepare graph for input */
@@ -145,6 +154,7 @@ public class Main extends Application implements UserInputController {
 
 
         /* finish */
+        graph.center();
         scene.setCursor(Cursor.DEFAULT);
         setUserState(UserState.READY);
         primaryStage.setScene(scene);
