@@ -167,13 +167,15 @@ public class SimulationController implements GUIController {
                 break;
             case NEW_SIM:
                 preferences.generalPanel.scenario.setEnabled(true);
-                scenarioOverlay.enable();
+
                 if (selectedScenarioBuilder == null)
                     selectedScenarioBuilder = (StartEndScenarioBuilder) preferences.generalPanel.scenario.getSelectedItem();
                 if (selectedScenarioDescription == null)
                     selectedScenarioDescription = selectedScenarioBuilder.createDescription(streetgraph);
+
                 scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
                 scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
+                scenarioOverlay.enable();
 
                 switch (state) {
                     case SIM_RUN:

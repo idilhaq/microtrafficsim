@@ -27,9 +27,10 @@ public class RandomScenarioBuilder extends StartEndScenarioBuilder {
         });
 
         SimplePolygon p = new SimplePolygon(new Coordinate[] {
-                new Coordinate(0.0, 0.0),
-                new Coordinate(0.0, 0.1),
-                new Coordinate(0.1, 0.1)
+                new Coordinate(graph.minLat, graph.minLon),
+                new Coordinate(graph.minLat, graph.maxLon),
+                new Coordinate(graph.maxLat, graph.maxLon),
+                new Coordinate(graph.maxLat, graph.minLon)
         });
 
         HashMap<SimplePolygon, ArrayList<Node>> startMap = new HashMap<>();

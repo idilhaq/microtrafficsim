@@ -30,6 +30,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class ScenarioAreaOverlay implements Overlay {
@@ -53,8 +54,8 @@ public class ScenarioAreaOverlay implements Overlay {
     private VertexArrayObject startMeshVao = null;
     private VertexArrayObject targetMeshVao = null;
 
-    private boolean reloadStartMesh = true;
-    private boolean reloadTargetMesh = true;
+    private AtomicBoolean reloadStartMesh = new AtomicBoolean(false);
+    private AtomicBoolean reloadTargetMesh = new AtomicBoolean(false);
 
     private ShaderProgram shader;
     private UniformVec4f uColor;
@@ -71,11 +72,17 @@ public class ScenarioAreaOverlay implements Overlay {
     public void setStartPolygons(Collection<SimplePolygon> start) {
         this.start.clear();
         this.start.addAll(start);
+
+        rebuildMesh(startMesh, this.start);
+        reloadStartMesh.set(true);
     }
 
     public void setEndPolygons(Collection<SimplePolygon> end) {
         this.target.clear();
         this.target.addAll(end);
+
+        rebuildMesh(targetMesh, this.target);
+        reloadTargetMesh.set(true);
     }
 
 
@@ -116,6 +123,7 @@ public class ScenarioAreaOverlay implements Overlay {
                 vb.put((float) v.x);
                 vb.put((float) v.y);
                 vb.put(0.f);
+                System.out.println(v.x + ","+ v.y);
             }
 
             for (int i : ix)
@@ -126,6 +134,9 @@ public class ScenarioAreaOverlay implements Overlay {
 
         vb.rewind();
         ib.rewind();
+
+        System.out.println(nVertices);
+        System.out.println(nIndices);
 
         mesh.setVertexBuffer(vb);       // XXX: concurrency
         mesh.setIndexBuffer(ib);        // XXX: concurrency
@@ -178,10 +189,10 @@ public class ScenarioAreaOverlay implements Overlay {
 
         // build meshes from specified polygons
         rebuildMesh(startMesh, start);
-        reloadStartMesh = true;
+        reloadStartMesh.set(true);
 
         rebuildMesh(targetMesh, target);
-        reloadTargetMesh = true;
+        reloadTargetMesh.set(true);
     }
 
     @Override
@@ -202,14 +213,10 @@ public class ScenarioAreaOverlay implements Overlay {
 
     @Override
     public void display(RenderContext context, MapBuffer map) {
-        if (reloadStartMesh) {
+        if (reloadStartMesh.getAndSet(false))
             startMesh.load(context, true);
-            reloadStartMesh = false;
-        }
-        if (reloadTargetMesh) {
+        if (reloadTargetMesh.getAndSet(false))
             targetMesh.load(context, true);
-            reloadTargetMesh = false;
-        }
 
         GL3 gl = context.getDrawable().getGL().getGL3();
 
