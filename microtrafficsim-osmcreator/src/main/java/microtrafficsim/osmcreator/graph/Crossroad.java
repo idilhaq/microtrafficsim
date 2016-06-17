@@ -147,19 +147,24 @@ public abstract class Crossroad extends Circle implements Draggable, ColoredSele
     |================|
     */
     @Override
-    public void setSelected(boolean value) {
-        isSelected = value;
+    public void refreshLook() {
         if (isSelected) {
             setFill(getColorSelected());
             setStroke(getStrokeColorSelected());
-            setStrokeWidth(Constants.CROSSROAD_STROKE_WIDTH);
-            setStrokeType(StrokeType.INSIDE);
+            setStrokeWidth(Constants.CROSSROAD_STROKE_WIDTH_SEL);
+            setStrokeType(StrokeType.CENTERED);
         } else {
             setFill(getColorUnselected());
             setStroke(getStrokeColorUnselected());
-            setStrokeWidth(Constants.CROSSROAD_STROKE_WIDTH);
-            setStrokeType(StrokeType.INSIDE);
+            setStrokeWidth(Constants.CROSSROAD_STROKE_WIDTH_UNSEL);
+            setStrokeType(StrokeType.CENTERED);
         }
+    }
+
+    @Override
+    public void setSelected(boolean value) {
+        isSelected = value;
+        refreshLook();
     }
 
     @Override

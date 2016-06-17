@@ -32,17 +32,21 @@ public final class Constants {
     public static final Color SELECTION_FILL_COLOR = Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6);
 
     /* crossroads */
-    public static final double CROSSROAD_RADIUS = 10;
-    public static final int CROSSROAD_STROKE_WIDTH = 0;
-    public static final Color CROSSROAD_COLOR_SEL = Color.ROSYBROWN;
-    public static final Color CROSSROAD_STROKE_COLOR_SEL = Color.ROSYBROWN;
-    public static final Color CROSSROAD_COLOR_UNSEL = Color.GOLD;
-    public static final Color CROSSROAD_STROKE_COLOR_UNSEL = Color.GOLD;
+    public static final double CROSSROAD_RADIUS = 5;
+    public static final int CROSSROAD_STROKE_WIDTH_UNSEL= 4;
+    public static final int CROSSROAD_STROKE_WIDTH_SEL = 8;
+    public static final Color CROSSROAD_COLOR_SEL = Color.rgb(214, 30, 36);
+    public static final Color CROSSROAD_COLOR_UNSEL = Color.rgb(214, 30, 36);
 
     /* streets */
-    public static final int STREET_STROKE_WIDTH = 2;
-    public static final Color STREET_COLOR_SEL = Color.ROSYBROWN;
-    public static final Color STREET_STROKE_COLOR_SEL = Color.ROSYBROWN;
-    public static final Color STREET_COLOR_UNSEL = Color.GOLD;//.deriveColor(1,1,1,0.5);
-    public static final Color STREET_STROKE_COLOR_UNSEL = Color.GOLD;//.deriveColor(1,1,1,0.5);
+    public static final int STREET_STROKE_WIDTH_UNSEL= 3;
+    public static final int STREET_STROKE_WIDTH_SEL = 4;
+    public static final Color STREET_COLOR_MOTORWAY = Color.rgb(237, 120, 52);
+    public static final Color STREET_COLOR_PRIMARY = Color.rgb(255, 197, 38);
+    public static final Color STREET_COLOR_SECONDARY = Color.rgb(143, 166, 63);
+    public static final Color STREET_COLOR_RESIDENTIAL = Color.rgb(0, 166, 155);
+
+    /* geometry: Arrow */
+    public static double ARROW_HEAD_LINE_LENGTH = 12;
+    public static double ARROW_HEAD_LINE_RADIANS = Math.toRadians(30);
 }

@@ -40,19 +40,19 @@ public abstract class EndOfTheWorldScenario extends AbstractStartEndScenario {
                 graph,
                 vehicleFactory);
         // routing
-        float latLength = Math.min(0.01f, 0.1f * (graph.maxLat - graph.minLat));
-        float lonLength = Math.min(0.01f, 0.1f * (graph.maxLon - graph.minLon));
-        leftEnd = new RectangleArea(graph.minLat, graph.minLon, graph.maxLat, graph.minLon + lonLength);
-        bottomEnd = new RectangleArea(graph.minLat, graph.minLon, graph.minLat + latLength, graph.maxLon);
-        rightEnd = new RectangleArea(graph.minLat, graph.maxLon - lonLength, graph.maxLat, graph.maxLon);
-        topEnd = new RectangleArea(graph.maxLat - latLength, graph.minLon, graph.maxLat, graph.maxLon);
+        float latLength = Math.min(0.01f, 0.1f * (graph.maxlat - graph.minlat));
+        float lonLength = Math.min(0.01f, 0.1f * (graph.maxlon - graph.minlon));
+        leftEnd = new RectangleArea(graph.minlat, graph.minlon, graph.maxlat, graph.minlon + lonLength);
+        bottomEnd = new RectangleArea(graph.minlat, graph.minlon, graph.minlat + latLength, graph.maxlon);
+        rightEnd = new RectangleArea(graph.minlat, graph.maxlon - lonLength, graph.maxlat, graph.maxlon);
+        topEnd = new RectangleArea(graph.maxlat - latLength, graph.minlon, graph.maxlat, graph.maxlon);
     }
 
     @Override
     protected void createNodeFields() {
 
         // start field
-        addStartField(new RectangleArea(graph.minLat, graph.minLon, graph.maxLat, graph.maxLon), 1);
+        addStartField(new RectangleArea(graph.minlat, graph.minlon, graph.maxlat, graph.maxlon), 1);
 
         // end fields
         addEndField(leftEnd, 1);
@@ -66,7 +66,7 @@ public abstract class EndOfTheWorldScenario extends AbstractStartEndScenario {
 
         Node start = getRandomStartNode();
 
-        Coordinate center = new Coordinate((graph.maxLat + graph.minLat) / 2, (graph.maxLon + graph.minLon) / 2);
+        Coordinate center = new Coordinate((graph.maxlat + graph.minlat) / 2, (graph.maxlon + graph.minlon) / 2);
         Coordinate startCoord = start.getCoordinate();
         // if start is below center
         boolean isBottom = center.lat - startCoord.lat > 0;

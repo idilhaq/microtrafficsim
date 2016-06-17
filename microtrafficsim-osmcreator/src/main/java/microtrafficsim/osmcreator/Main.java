@@ -35,6 +35,7 @@ public class Main extends Application implements UserInputController {
     /* quick fix */
     private boolean selectedCrossroadWasSelected;
 
+    private Stage primaryStage;
     private Pane graph;
     private Group crossroadGroup;
     private Group streetGroup;
@@ -74,6 +75,7 @@ public class Main extends Application implements UserInputController {
     */
     @Override
     public void start(Stage primaryStage) throws Exception {
+        this.primaryStage = primaryStage;
         primaryStage.setTitle("MicroTrafficSim - OSM creator");
         graph = new Pane();
         crossroadGroup = new Group();
@@ -113,10 +115,24 @@ public class Main extends Application implements UserInputController {
 
         /* prepare scene for user input */
         scene.addEventHandler(KeyEvent.KEY_PRESSED, keyEvent -> {
-            if (keyEvent.getCode().equals(KeyCode.BACK_SPACE))
-                transiate(UserEvent.DELETE, keyEvent, null);
-            else if (keyEvent.getCode().equals(KeyCode.S))
-                osmcreator.createOSMFile(primaryStage, graph, model.getStreets());
+            switch (keyEvent.getCode()) {
+                case BACK_SPACE:
+                    transiate(UserEvent.DELETE, keyEvent, null);
+                    break;
+                case S:
+                    osmcreator.createOSMFile(primaryStage, graph, model.getStreets());
+                    break;
+                case LEFT:
+                    if (selectedStreet != null) {
+                        selectedStreet.setStreetType(selectedStreet.getStreetType().arithmeticalShiftLow());
+                    }
+                    break;
+                case RIGHT:
+                    if (selectedStreet != null) {
+                        selectedStreet.setStreetType(selectedStreet.getStreetType().arithmeticalShiftHigh());
+                    }
+                    break;
+            }
         });
 
 
@@ -158,6 +174,22 @@ public class Main extends Application implements UserInputController {
     @Override
     public void setUserState(UserState userState) {
         this.userState = userState;
+        switch (userState) {
+            case READY:
+            case SELECTION_ACTIVE:
+            case CROSSROADS_SELECTED:
+            case MOVING_ACTIVE:
+            case STREET_SELECTED:
+                primaryStage.setTitle("MicroTrafficSim - OSM creator - Knotenmodus");
+                break;
+            case READY_DILIGENT:
+            case SELECTION_ACTIVE_DILIGENT:
+            case CROSSROADS_SELECTED_DILIGENT:
+            case MOVING_ACTIVE_DILIGENT:
+            case STREET_SELECTED_DILIGENT:
+                primaryStage.setTitle("MicroTrafficSim - OSM creator - Straßenmodus");
+                break;
+        }
     }
 
     @Override
@@ -452,6 +484,7 @@ public class Main extends Application implements UserInputController {
                         clickedStreet = (Street)clickedNode;
                         if (!clickedStreet.isSelected()) {
                             selection.unselectAll();
+                            unselectCurrentStreet();
                             select(clickedStreet);
                             setUserState(UserState.STREET_SELECTED);
                         }
@@ -460,6 +493,7 @@ public class Main extends Application implements UserInputController {
                         clickedStreet = (Street)clickedNode;
                         if (!clickedStreet.isSelected()) {
                             selection.unselectAll();
+                            unselectCurrentStreet();
                             select(clickedStreet);
                             setUserState(UserState.STREET_SELECTED_DILIGENT);
                         }
@@ -530,6 +564,7 @@ public class Main extends Application implements UserInputController {
                         setUserState(UserState.MOVING_ACTIVE);
                         break;
                     case STREET_SELECTED:
+
                         setUserState(UserState.STREET_SELECTED_DILIGENT);
                         break;
                     case STREET_SELECTED_DILIGENT:
@@ -551,7 +586,12 @@ public class Main extends Application implements UserInputController {
 
         /* add event handlers */
         crossroad.addEventHandler(MouseEvent.MOUSE_PRESSED,
-                mouseEvent -> transiate(UserEvent.PRESS_CROSSROAD, mouseEvent, crossroad));
+                mouseEvent -> {
+                    if (mouseEvent.isPrimaryButtonDown())
+                        transiate(UserEvent.PRESS_CROSSROAD, mouseEvent, crossroad);
+                    else if (mouseEvent.isSecondaryButtonDown())
+                        transiate(UserEvent.RIGHT_CLICK, mouseEvent, crossroad);
+                });
         crossroad.addEventHandler(MouseEvent.MOUSE_DRAGGED,
                 mouseEvent -> transiate(UserEvent.MOVE_CROSSROADS, mouseEvent, crossroad));
         crossroad.addEventHandler(MouseEvent.MOUSE_RELEASED,

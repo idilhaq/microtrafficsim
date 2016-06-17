@@ -23,8 +23,8 @@ public abstract class Street extends Arrow implements ColoredSelectable {
                 double radians = Math.atan2(
                         endY.doubleValue() - startY.doubleValue(),
                         endX.doubleValue() - newValue.doubleValue());
-                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + Constants.STREET_STROKE_WIDTH;
-                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + Constants.STREET_STROKE_WIDTH;
+                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
+                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
                 setStartX(newValue.doubleValue() + versatzX);
                 setStartY(startY.doubleValue() + versatzY);
                 setEndX(endX.doubleValue() - versatzX);
@@ -35,8 +35,8 @@ public abstract class Street extends Arrow implements ColoredSelectable {
                 double radians = Math.atan2(
                         endY.doubleValue() - newValue.doubleValue(),
                         endX.doubleValue() - startX.doubleValue());
-                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + Constants.STREET_STROKE_WIDTH;
-                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + Constants.STREET_STROKE_WIDTH;
+                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
+                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
                 setStartX(startX.doubleValue() + versatzX);
                 setStartY(newValue.doubleValue() + versatzY);
                 setEndX(endX.doubleValue() - versatzX);
@@ -52,8 +52,8 @@ public abstract class Street extends Arrow implements ColoredSelectable {
                 double radians = Math.atan2(
                         endY.doubleValue() - startY.doubleValue(),
                         newValue.doubleValue() - startX.doubleValue());
-                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + Constants.STREET_STROKE_WIDTH;
-                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + Constants.STREET_STROKE_WIDTH;
+                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
+                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
                 setStartX(startX.doubleValue() + versatzX);
                 setStartY(startY.doubleValue() + versatzY);
                 setEndX(newValue.doubleValue() - versatzX);
@@ -64,8 +64,8 @@ public abstract class Street extends Arrow implements ColoredSelectable {
                 double radians = Math.atan2(
                         newValue.doubleValue() - startY.doubleValue(),
                         endX.doubleValue() - startX.doubleValue());
-                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + Constants.STREET_STROKE_WIDTH;
-                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + Constants.STREET_STROKE_WIDTH;
+                double versatzX = Constants.CROSSROAD_RADIUS * Math.cos(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
+                double versatzY = Constants.CROSSROAD_RADIUS * Math.sin(radians) + 2*Constants.STREET_STROKE_WIDTH_UNSEL;
                 setStartX(startX.doubleValue() + versatzX);
                 setStartY(startY.doubleValue() + versatzY);
                 setEndX(endX.doubleValue() - versatzX);
@@ -87,6 +87,7 @@ public abstract class Street extends Arrow implements ColoredSelectable {
     private StreetDirection direction;
     private boolean isSelected;
     public long ID;
+    private StreetType streetType = StreetType.RESIDENTIAL;
 
     /**
      * NOTE: INCLUSIVE POSITION BINDING!
@@ -148,6 +149,34 @@ public abstract class Street extends Arrow implements ColoredSelectable {
         }
     }
 
+    public StreetType getStreetType() {
+        return streetType;
+    }
+
+    public void setStreetType(StreetType streetType) {
+        this.streetType = streetType;
+        refreshLook();
+    }
+
+    /*
+    |=======================|
+    | (i) ColoredSelectable |
+    |=======================|
+    */
+    public void refreshLook() {
+        if (isSelected) {
+            setFill(getColorSelected());
+            setStroke(getStrokeColorSelected());
+            setStrokeWidth(Constants.STREET_STROKE_WIDTH_SEL);
+            setStrokeType(StrokeType.OUTSIDE);
+        } else {
+            setFill(getColorUnselected());
+            setStroke(getStrokeColorUnselected());
+            setStrokeWidth(Constants.STREET_STROKE_WIDTH_UNSEL);
+            setStrokeType(StrokeType.OUTSIDE);
+        }
+    }
+
     /*
     |================|
     | (i) Selectable |
@@ -156,17 +185,7 @@ public abstract class Street extends Arrow implements ColoredSelectable {
     @Override
     public void setSelected(boolean value) {
         isSelected = value;
-        if (isSelected) {
-            setFill(getColorSelected());
-            setStroke(getStrokeColorSelected());
-            setStrokeWidth(Constants.STREET_STROKE_WIDTH);
-            setStrokeType(StrokeType.OUTSIDE);
-        } else {
-            setFill(getColorUnselected());
-            setStroke(getStrokeColorUnselected());
-            setStrokeWidth(Constants.STREET_STROKE_WIDTH);
-            setStrokeType(StrokeType.OUTSIDE);
-        }
+        refreshLook();
     }
 
     @Override

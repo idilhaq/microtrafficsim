@@ -39,8 +39,8 @@ public class RandomRouteScenario extends AbstractStartEndScenario {
 
     @Override
     protected final void createNodeFields() {
-        addStartField(new RectangleArea(graph.minLat, graph.minLon, graph.maxLat, graph.maxLon), 1);
-        addEndField(new RectangleArea(graph.minLat, graph.minLon, graph.maxLat, graph.maxLon), 1);
+        addStartField(new RectangleArea(graph.minlat, graph.minlon, graph.maxlat, graph.maxlon), 1);
+        addEndField(new RectangleArea(graph.minlat, graph.minlon, graph.maxlat, graph.maxlon), 1);
     }
 
     @Override

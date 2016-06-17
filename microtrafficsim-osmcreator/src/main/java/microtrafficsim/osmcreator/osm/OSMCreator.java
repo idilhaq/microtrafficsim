@@ -1,6 +1,5 @@
 package microtrafficsim.osmcreator.osm;
 
-import ZZZ_NEU_microtrafficsim.osmcreator.geometry.GraphPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -8,6 +7,7 @@ import microtrafficsim.core.map.Bounds;
 import microtrafficsim.core.map.Coordinate;
 import microtrafficsim.core.vis.map.projections.MercatorProjection;
 import microtrafficsim.core.vis.map.projections.Projection;
+import microtrafficsim.math.Vec2d;
 import microtrafficsim.osmcreator.Constants;
 import microtrafficsim.osmcreator.graph.Crossroad;
 import microtrafficsim.osmcreator.graph.Street;
@@ -33,6 +33,7 @@ import java.util.function.BiFunction;
 public class OSMCreator {
 
     private File currentDirectory;
+    private Projection projection = new MercatorProjection();
 
     public OSMCreator() {
         currentDirectory = new File(System.getProperty("user.dir"));
@@ -65,9 +66,9 @@ public class OSMCreator {
 
                 writer.writeStartElement("bounds");
                 writer.writeAttribute("minlat", "" + mapBounds.minlat);
-                writer.writeAttribute("minlon=", "" + mapBounds.minlon);
-                writer.writeAttribute("maxlat=", "" + mapBounds.maxlat);
-                writer.writeAttribute("maxlon=", "" + mapBounds.maxlon);
+                writer.writeAttribute("minlon", "" + mapBounds.minlon);
+                writer.writeAttribute("maxlat", "" + mapBounds.maxlat);
+                writer.writeAttribute("maxlon", "" + mapBounds.maxlon);
                 writer.writeEndElement();
 
                 /* nodes */
@@ -78,6 +79,7 @@ public class OSMCreator {
                     writer.writeAttribute("id", "" + node.ID);
                     writer.writeAttribute("visible", "true");
                     Coordinate coordinate = transform.apply(node.getTranslateY(), node.getTranslateX());
+//                    Coordinate coordinate = projection.unproject(pos);
                     writer.writeAttribute("lat", "" + coordinate.lat);
                     writer.writeAttribute("lon", "" + coordinate.lon);
                     writer.writeEndElement();
@@ -107,11 +109,10 @@ public class OSMCreator {
                             : "no");
                     writer.writeEndElement();
 
-                    // todo
-//                    writer.writeStartElement("tag");
-//                    writer.writeAttribute("k", "highway");
-//                    writer.writeAttribute("v", "residential");
-//                    writer.writeEndElement();
+                    writer.writeStartElement("tag");
+                    writer.writeAttribute("k", "highway");
+                    writer.writeAttribute("v", street.getStreetType().osmname);
+                    writer.writeEndElement();
 
                     writer.writeEndElement();
                 }

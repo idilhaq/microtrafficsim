@@ -22,21 +22,31 @@ public class GoldStreet extends Street {
     */
     @Override
     public Color getColorSelected() {
-        return Constants.STREET_COLOR_SEL;
+        return getColorUnselected().deriveColor(1, 1.1, 0.9, 1);
     }
 
     @Override
     public Color getStrokeColorSelected() {
-        return Constants.STREET_STROKE_COLOR_SEL;
+        return getColorSelected();
     }
 
     @Override
     public Color getColorUnselected() {
-        return Constants.STREET_COLOR_UNSEL;
+        switch (getStreetType()) {
+            case MOTORWAY:
+                return Constants.STREET_COLOR_MOTORWAY;
+            case PRIMARY:
+                return Constants.STREET_COLOR_PRIMARY;
+            case SECONDARY:
+                return Constants.STREET_COLOR_SECONDARY;
+            case RESIDENTIAL:
+                return Constants.STREET_COLOR_RESIDENTIAL;
+        }
+        return null;
     }
 
     @Override
     public Color getStrokeColorUnselected() {
-        return Constants.STREET_STROKE_COLOR_UNSEL;
+        return getColorUnselected();
     }
 }

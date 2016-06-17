@@ -114,7 +114,7 @@ public class SimulationController implements GUIController {
     }
 
     @Override
-    public synchronized void transiate(GUIEvent event, File file) {
+    public void transiate(GUIEvent event, File file) {
         logger.debug("GUIState before transiate = GUIState." + state);
         logger.debug("GUIEvent called           = GUIEvent." + event);
         switch (event) {
@@ -148,7 +148,7 @@ public class SimulationController implements GUIController {
                                     setState(GUIState.PARSING_SIM_PAUSE);
                                     break;
                             }
-                            asyncParseAndShow(file);
+                            syncParseAndShow(file);
                         }
                     }
                 }
@@ -295,8 +295,6 @@ public class SimulationController implements GUIController {
     }
 
     private void updateMenuBar() {
-        System.err.println("state=" + state);
-
         switch (state) {
             case RAW: /*---------------------------------------------*/
             case PARSING: /*-----------------------------------------*/
@@ -446,13 +444,13 @@ public class SimulationController implements GUIController {
         String oldTitle = frame.getTitle();
         frame.setTitle("Calculating vehicle routes 0%");
 
-    /* create the simulation */
+        /* create the simulation */
         simulation = currentScenarioBuilder.create(currentScenarioDescription, config, streetgraph,
                 vehicleOverlay.getVehicleFactory());
 
         vehicleOverlay.setSimulation(simulation);
 
-    /* initialize the simulation */
+        /* initialize the simulation */
         simulation.prepare(currentInPercent -> frame.setTitle("Calculating vehicle routes " + currentInPercent + "%"));
         simulation.runOneStep();
         frame.setTitle(oldTitle);
@@ -511,8 +509,8 @@ public class SimulationController implements GUIController {
         return null;
     }
 
-    private void asyncParseAndShow(File file) {
-        new Thread(() -> {
+    private void syncParseAndShow(File file) {
+//        new Thread(() -> {
             String oldTitle = frame.getTitle();
             frame.setTitle("Parsing new map, please wait...");
 
@@ -536,7 +534,7 @@ public class SimulationController implements GUIController {
                 e.printStackTrace();
                 Runtime.getRuntime().halt(1);
             }
-        }).start();
+//        }).start();
     }
 
     /*

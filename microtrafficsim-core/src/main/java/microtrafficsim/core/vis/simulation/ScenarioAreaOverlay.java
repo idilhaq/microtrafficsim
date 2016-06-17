@@ -69,7 +69,7 @@ public class ScenarioAreaOverlay implements Overlay {
         this.projection = projection;
     }
 
-    public void setStartPolygons(Collection<SimplePolygon> start) {
+    public void setStartPolygons(Collection<ISimplePolygon> start) {
         this.start.clear();
         this.start.addAll(start);
 
@@ -77,7 +77,7 @@ public class ScenarioAreaOverlay implements Overlay {
         reloadStartMesh.set(true);
     }
 
-    public void setEndPolygons(Collection<SimplePolygon> end) {
+    public void setEndPolygons(Collection<ISimplePolygon> end) {
         this.target.clear();
         this.target.addAll(end);
 
