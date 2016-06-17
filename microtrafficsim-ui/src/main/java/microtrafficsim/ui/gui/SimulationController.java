@@ -148,7 +148,7 @@ public class SimulationController implements GUIController {
                                     setState(GUIState.PARSING_SIM_PAUSE);
                                     break;
                             }
-                            asyncParseAndShow(file);
+                            syncParseAndShow(file);
                         }
                     }
                 }
@@ -442,13 +442,13 @@ public class SimulationController implements GUIController {
         String oldTitle = frame.getTitle();
         frame.setTitle("Calculating vehicle routes 0%");
 
-    /* create the simulation */
+        /* create the simulation */
         simulation = currentScenarioBuilder.create(currentScenarioDescription, config, streetgraph,
                 vehicleOverlay.getVehicleFactory());
 
         vehicleOverlay.setSimulation(simulation);
 
-    /* initialize the simulation */
+        /* initialize the simulation */
         simulation.prepare(currentInPercent -> frame.setTitle("Calculating vehicle routes " + currentInPercent + "%"));
         simulation.runOneStep();
         frame.setTitle(oldTitle);
@@ -507,7 +507,7 @@ public class SimulationController implements GUIController {
         return null;
     }
 
-    private void asyncParseAndShow(File file) {
+    private void syncParseAndShow(File file) {
 //        new Thread(() -> {
             String oldTitle = frame.getTitle();
             frame.setTitle("Parsing new map, please wait...");
