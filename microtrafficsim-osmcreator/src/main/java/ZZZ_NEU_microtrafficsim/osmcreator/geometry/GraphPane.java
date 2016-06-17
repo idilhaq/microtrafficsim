@@ -21,6 +21,8 @@ public class GraphPane extends Region {
     private Projection projection;
     private NodeGestures nodeGestures;
 
+    private Group transform;
+
     public GraphPane() {
         model = new GraphModel();
         projection = new MercatorProjection();
@@ -32,15 +34,27 @@ public class GraphPane extends Region {
         setPrefSize(width, height);
         setMinSize(width, height);
         setMaxSize(width, height);
+
+        setScaleY(-1);              // invert y-axis
+
+        transform = new Group();    // translation
+        transform.setTranslateX(-projectedMaximumBounds.xmin);
+        transform.setTranslateY(-projectedMaximumBounds.ymin);
+        getChildren().add(transform);
     }
 
     public void addNewCrossroad(double x, double y) {
+        Rect2d bounds = projection.getProjectedMaximumBounds();
+        x += bounds.xmin;
+        y += bounds.ymin;
+
+        System.out.println(x + ", " + y);       // TODO: remove
+
         /* mouse event sends position of graphpane's local coordinate system */
         Crossroad newCrossroad = model.createCrossroad(0, 0);
         newCrossroad.setTranslateX(x);
         newCrossroad.setTranslateY(y);
-        getChildren().add(newCrossroad);
-
+        transform.getChildren().add(newCrossroad);
 
         /* bind for better look */
         DoubleProperty scaleX = new SimpleDoubleProperty();
