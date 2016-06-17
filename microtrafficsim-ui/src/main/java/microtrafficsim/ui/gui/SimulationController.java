@@ -1,7 +1,6 @@
 package microtrafficsim.ui.gui;
 
 
-import microtrafficsim.core.frameworks.vehicle.IVisualizationVehicle;
 import microtrafficsim.core.logic.StreetGraph;
 import microtrafficsim.core.parser.OSMParser;
 import microtrafficsim.core.simulation.Simulation;
@@ -14,6 +13,7 @@ import microtrafficsim.core.vis.simulation.VehicleOverlay;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
 import microtrafficsim.ui.preferences.PrefElement;
 import microtrafficsim.ui.preferences.impl.PreferencesFrame;
+import microtrafficsim.ui.tdw.simulations.StartEndScenarioBuilder;
 import microtrafficsim.ui.vis.MapViewer;
 import microtrafficsim.ui.vis.TileBasedMapViewer;
 import org.slf4j.Logger;
@@ -29,7 +29,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.function.Supplier;
 
 /**
  * @author Dominic Parga Cacheiro
@@ -44,7 +43,6 @@ public class SimulationController implements GUIController {
 
     // logic
     private final SimulationConfig config;
-    private final SimulationConstructor simulationConstructor;
     private Simulation simulation;
 
     // visualization
@@ -53,6 +51,14 @@ public class SimulationController implements GUIController {
     private ScenarioAreaOverlay scenarioOverlay;
     private File currentDirectory;
 
+    // scenario generation
+    private StartEndScenarioBuilder.StartEndScenarioDescription currentScenarioDescription = null;
+    private StartEndScenarioBuilder currentScenarioBuilder = null;
+
+    private StartEndScenarioBuilder.StartEndScenarioDescription selectedScenarioDescription = null;
+    private StartEndScenarioBuilder selectedScenarioBuilder = null;
+
+
     // frame/gui
     private final JFrame frame;
     private final MTSMenuBar menubar;
@@ -60,16 +66,11 @@ public class SimulationController implements GUIController {
     // preferences
     private PreferencesFrame preferences;
 
-    public SimulationController(SimulationConstructor simulationConstructor,
-                                MapViewer mapviewer) {
-        this(   simulationConstructor,
-                mapviewer,
-                "MicroTrafficSim - GUI Example");
+    public SimulationController(MapViewer mapviewer) {
+        this(mapviewer, "MicroTrafficSim - GUI Example");
     }
 
-    public SimulationController(SimulationConstructor simulationConstructor,
-                                MapViewer mapviewer,
-                                String title) {
+    public SimulationController(MapViewer mapviewer, String title) {
         super();
 
         // general
@@ -78,7 +79,6 @@ public class SimulationController implements GUIController {
 
         // logic
         config = new SimulationConfig();
-        this.simulationConstructor = simulationConstructor;
 
         // visualization
         this.mapviewer = mapviewer;
@@ -155,6 +155,8 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case DID_PARSE:
+                currentScenarioDescription = null;
+                selectedScenarioDescription = null;
                 switch (state) {
                     case PARSING:
                     case PARSING_SIM_RUN:
@@ -164,8 +166,15 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case NEW_SIM:
+                preferences.generalPanel.scenario.setEnabled(true);
                 scenarioOverlay.enable();
-                // TODO: set scenario overlay
+                if (selectedScenarioBuilder == null)
+                    selectedScenarioBuilder = (StartEndScenarioBuilder) preferences.generalPanel.scenario.getSelectedItem();
+                if (selectedScenarioDescription == null)
+                    selectedScenarioDescription = selectedScenarioBuilder.createDescription(streetgraph);
+                scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
+                scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
+
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -178,6 +187,9 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case ACCEPT:
+                preferences.generalPanel.scenario.setEnabled(false);
+                currentScenarioDescription = selectedScenarioDescription;
+                currentScenarioBuilder = selectedScenarioBuilder;
                 scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
@@ -197,6 +209,10 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case CANCEL:
+                preferences.generalPanel.scenario.setEnabled(false);
+                selectedScenarioDescription = currentScenarioDescription;
+                selectedScenarioBuilder = currentScenarioBuilder;
+                preferences.generalPanel.scenario.setSelectedItem(selectedScenarioBuilder);
                 scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
@@ -208,7 +224,8 @@ public class SimulationController implements GUIController {
                 break;
             case EDIT_SIM:
                 scenarioOverlay.enable();
-                // TODO: set scenario overlay
+                scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
+                scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -428,7 +445,9 @@ public class SimulationController implements GUIController {
         frame.setTitle("Calculating vehicle routes 0%");
 
     /* create the simulation */
-        simulation = simulationConstructor.instantiate(config, streetgraph, vehicleOverlay.getVehicleFactory());
+        simulation = currentScenarioBuilder.create(currentScenarioDescription, config, streetgraph,
+                vehicleOverlay.getVehicleFactory());
+
         vehicleOverlay.setSimulation(simulation);
 
     /* initialize the simulation */
@@ -569,20 +588,5 @@ public class SimulationController implements GUIController {
     private void closePreferences() {
         preferences.setVisible(false);
         preferences.setAllEnabled(false);
-    }
-
-  /*
-  |=======|
-  | stuff |
-  |=======|
-  */
-    /**
-     * This interface gives the opportunity to call the constructor of {@link SimulationController} with a parameter, that
-     * is the constructor of the used Simulation.
-     */
-    public interface SimulationConstructor {
-        Simulation instantiate(SimulationConfig config,
-                               StreetGraph streetgraph,
-                               Supplier<IVisualizationVehicle> vehicleFactory);
     }
 }

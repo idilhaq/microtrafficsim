@@ -1,8 +1,10 @@
 package microtrafficsim.ui.preferences.impl;
 
 import microtrafficsim.core.simulation.configs.SimulationConfig;
-import microtrafficsim.ui.preferences.PrefElement;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
+import microtrafficsim.ui.preferences.PrefElement;
+import microtrafficsim.ui.tdw.simulations.RandomScenarioBuilder;
+import microtrafficsim.ui.tdw.simulations.StartEndScenarioBuilder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +15,8 @@ import java.util.Hashtable;
  */
 public class GeneralPanel extends PreferencesPanel {
   private JSlider sliderSpeedup;
-  private JTextField tfAgeForPause, tfMaxVehicleCount, tfSeed, tfMetersPerCell;
+  private JTextField tfMaxVehicleCount, tfSeed, tfMetersPerCell;
+  public JComboBox<StartEndScenarioBuilder> scenario;
 
   public GeneralPanel() {
     super("General");
@@ -65,8 +68,8 @@ public class GeneralPanel extends PreferencesPanel {
   }
 
   private void addAgeForPause() {
-    tfAgeForPause = new JTextField();
-    configureAndAddJTextFieldRow("age for pause: ", tfAgeForPause);
+    // tfAgeForPause = new JTextField();
+    // configureAndAddJTextFieldRow("age for pause: ", tfAgeForPause);
   }
 
   private void addMaxVehicleCount() {
@@ -84,6 +87,32 @@ public class GeneralPanel extends PreferencesPanel {
     configureAndAddJTextFieldRow("meters per cell", tfMetersPerCell);
   }
 
+  private void addScenarioBox() {
+    scenario = new JComboBox<>();
+    scenario.addItem(new RandomScenarioBuilder());
+    // TODO: add new scenarios
+    incRow();
+
+    /* JLabel */
+    GridBagConstraints constraints = new GridBagConstraints();
+    constraints.weightx = 0;
+    constraints.anchor = GridBagConstraints.WEST;
+    JLabel label = new JLabel("scenario");
+    label.setFont(PreferencesFrame.TEXT_FONT);
+    incColumn();
+    add(label, constraints);
+
+    /* Combo box */
+    constraints = new GridBagConstraints();
+    constraints.weightx = 0;
+    constraints.anchor = GridBagConstraints.WEST;
+    incColumn();
+    add(scenario, constraints);
+
+    incColumn();
+    addGapPanel(1);
+  }
+
   /*
   |=================|
   | (i) Preferences |
@@ -92,17 +121,18 @@ public class GeneralPanel extends PreferencesPanel {
   @Override
   public void create() {
     addSpeedup();
-    addAgeForPause();
+    // addAgeForPause();
     addMaxVehicleCount();
     addSeed();
     addMetersPerCell();
+    addScenarioBox();
     setAllEnabled(false);
   }
 
   @Override
   public void setSettings(SimulationConfig config) {
     sliderSpeedup.setValue(config.speedup);
-    tfAgeForPause.setText("" + config.ageForPause);
+    // tfAgeForPause.setText("" + config.ageForPause);
     tfMaxVehicleCount.setText("" + config.maxVehicleCount);
     tfSeed.setText("" + config.seed);
     tfMetersPerCell.setText("" + config.metersPerCell);
@@ -116,12 +146,12 @@ public class GeneralPanel extends PreferencesPanel {
 
 
     config.speedup = sliderSpeedup.getValue();
-    try {
-      config.ageForPause = Integer.parseInt(tfAgeForPause.getText());
-    } catch (NumberFormatException e) {
-      exception.appendToMessage("\"Age for pause\" should be an integer.\n");
-      exceptionOccured = true;
-    }
+//    try {
+//      config.ageForPause = Integer.parseInt(tfAgeForPause.getText());
+//    } catch (NumberFormatException e) {
+//      exception.appendToMessage("\"Age for pause\" should be an integer.\n");
+//      exceptionOccured = true;
+//    }
     try {
       config.maxVehicleCount = Integer.parseInt(tfMaxVehicleCount.getText());
     } catch (NumberFormatException e) {
@@ -155,9 +185,9 @@ public class GeneralPanel extends PreferencesPanel {
       case sliderSpeedup:
         sliderSpeedup.setEnabled(enabled);
         break;
-      case ageForPause:
-        tfAgeForPause.setEnabled(enabled);
-        break;
+      // case ageForPause:
+        // tfAgeForPause.setEnabled(enabled);
+        // break;
       case maxVehicleCount:
         tfMaxVehicleCount.setEnabled(enabled);
         break;
@@ -173,7 +203,7 @@ public class GeneralPanel extends PreferencesPanel {
   @Override
   public void setAllEnabled(boolean enabled) {
     sliderSpeedup.setEnabled(enabled);
-    tfAgeForPause.setEnabled(enabled);
+    // tfAgeForPause.setEnabled(enabled);
     tfMaxVehicleCount.setEnabled(enabled);
     tfSeed.setEnabled(enabled);
     tfMetersPerCell.setEnabled(enabled);

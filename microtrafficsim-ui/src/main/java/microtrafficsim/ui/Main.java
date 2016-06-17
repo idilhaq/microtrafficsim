@@ -32,9 +32,7 @@ public class Main {
       file = null;
 
     SwingUtilities.invokeLater(() -> {
-      GUIController controller = new SimulationController(
-              RandomRouteScenario::new,
-              new TileBasedMapViewer());
+      GUIController controller = new SimulationController(new TileBasedMapViewer());
       controller.transiate(GUIEvent.CREATE, file);
     });
   }
