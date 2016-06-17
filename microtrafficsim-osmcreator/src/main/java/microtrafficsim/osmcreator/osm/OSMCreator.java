@@ -105,8 +105,8 @@ public class OSMCreator {
                     writer.writeAttribute("k", "oneway");
                     writer.writeAttribute("v", (
                             street.getStreetDirectionFrom(street.origin) == StreetDirection.BIDIRECTIONAL)
-                            ? "yes"
-                            : "no");
+                            ? "no"
+                            : "yes");
                     writer.writeEndElement();
 
                     writer.writeStartElement("tag");
