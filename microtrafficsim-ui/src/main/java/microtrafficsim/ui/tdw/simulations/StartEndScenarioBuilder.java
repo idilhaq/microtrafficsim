@@ -3,6 +3,7 @@ package microtrafficsim.ui.tdw.simulations;
 import microtrafficsim.core.frameworks.vehicle.IVisualizationVehicle;
 import microtrafficsim.core.logic.Node;
 import microtrafficsim.core.logic.StreetGraph;
+import microtrafficsim.core.map.area.Area;
 import microtrafficsim.core.map.area.ISimplePolygon;
 import microtrafficsim.core.map.area.SimplePolygon;
 import microtrafficsim.core.simulation.configs.SimulationConfig;
@@ -14,6 +15,9 @@ import java.util.function.Supplier;
 
 
 public abstract class StartEndScenarioBuilder {
+
+    // TODO this class is just a prototype of a scenario - simulation builder approach
+
 
     public static class StartEndScenarioDescription {
         public final HashMap<ISimplePolygon, ArrayList<Node>> start;

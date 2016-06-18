@@ -13,6 +13,9 @@ import microtrafficsim.core.vis.simulation.VehicleOverlay;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
 import microtrafficsim.ui.preferences.PrefElement;
 import microtrafficsim.ui.preferences.impl.PreferencesFrame;
+import microtrafficsim.ui.tdw.simulations.InOutScenarioBuilder;
+import microtrafficsim.ui.tdw.simulations.RandomScenarioBuilder;
+import microtrafficsim.ui.tdw.simulations.StartEndScenario;
 import microtrafficsim.ui.tdw.simulations.StartEndScenarioBuilder;
 import microtrafficsim.ui.vis.MapViewer;
 import microtrafficsim.ui.vis.TileBasedMapViewer;
@@ -36,6 +39,7 @@ import java.io.IOException;
 public class SimulationController implements GUIController {
 
     private static Logger logger = LoggerFactory.getLogger(SimulationController.class);
+    private static final boolean debugIsEnabled = false;
 
     // general
     private GUIState state, previousState;
@@ -52,12 +56,10 @@ public class SimulationController implements GUIController {
     private File currentDirectory;
 
     // scenario generation
-    private StartEndScenarioBuilder.StartEndScenarioDescription currentScenarioDescription = null;
-    private StartEndScenarioBuilder currentScenarioBuilder = null;
-
-    private StartEndScenarioBuilder.StartEndScenarioDescription selectedScenarioDescription = null;
     private StartEndScenarioBuilder selectedScenarioBuilder = null;
-
+    private StartEndScenarioBuilder backupScenarioBuilder = null;
+    private StartEndScenarioBuilder.StartEndScenarioDescription selectedScenarioDescription = null;
+    private StartEndScenarioBuilder.StartEndScenarioDescription backupScenarioDescription = null;
 
     // frame/gui
     private final JFrame frame;
@@ -115,8 +117,10 @@ public class SimulationController implements GUIController {
 
     @Override
     public void transiate(GUIEvent event, File file) {
-        logger.debug("GUIState before transiate = GUIState." + state);
-        logger.debug("GUIEvent called           = GUIEvent." + event);
+        if (debugIsEnabled) {
+            logger.debug("GUIState before transiate = GUIState." + state);
+            logger.debug("GUIEvent called           = GUIEvent." + event);
+        }
         switch (event) {
             case CREATE:
             case LOAD_MAP:
@@ -155,8 +159,6 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case DID_PARSE:
-                currentScenarioDescription = null;
-                selectedScenarioDescription = null;
                 switch (state) {
                     case PARSING:
                     case PARSING_SIM_RUN:
@@ -165,18 +167,7 @@ public class SimulationController implements GUIController {
                 }
                 updateMenuBar();
                 break;
-            case NEW_SIM:
-                preferences.generalPanel.scenario.setEnabled(true);
-
-                if (selectedScenarioBuilder == null)
-                    selectedScenarioBuilder = (StartEndScenarioBuilder) preferences.generalPanel.scenario.getSelectedItem();
-                if (selectedScenarioDescription == null)
-                    selectedScenarioDescription = selectedScenarioBuilder.createDescription(streetgraph);
-
-                scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
-                scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
-                scenarioOverlay.enable();
-
+            case PREPARE_NEW_SIM:
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -189,20 +180,16 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case ACCEPT:
-                preferences.generalPanel.scenario.setEnabled(false);
-                currentScenarioDescription = selectedScenarioDescription;
-                currentScenarioBuilder = selectedScenarioBuilder;
-                scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
                         if (updateSimulationConfig()) {
-                            closePreferences();
+                            closePreferences(false);
                             setState(GUIState.SIM_PAUSE);
                         }
                         break;
                     case SIM_NEW:
                         if (updateSimulationConfig()) {
-                            closePreferences();
+                            closePreferences(false);
                             cleanupSimulation();
                             startNewSimulation();
                             setState(GUIState.SIM_PAUSE);
@@ -211,23 +198,15 @@ public class SimulationController implements GUIController {
                 updateMenuBar();
                 break;
             case CANCEL:
-                preferences.generalPanel.scenario.setEnabled(false);
-                selectedScenarioDescription = currentScenarioDescription;
-                selectedScenarioBuilder = currentScenarioBuilder;
-                preferences.generalPanel.scenario.setSelectedItem(selectedScenarioBuilder);
-                scenarioOverlay.disable();
                 switch (state) {
                     case SIM_EDIT:
                     case SIM_NEW:
-                        closePreferences();
+                        closePreferences(true);
                         setState(previousState);
                 }
                 updateMenuBar();
                 break;
             case EDIT_SIM:
-                scenarioOverlay.enable();
-                scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
-                scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
                 switch (state) {
                     case SIM_RUN:
                         pauseSim();
@@ -291,7 +270,9 @@ public class SimulationController implements GUIController {
                 exit();
         }
 
-        logger.debug("GUIState after transiate  = GUIState." + state);
+        if (debugIsEnabled) {
+            logger.debug("GUIState after transiate  = GUIState." + state);
+        }
     }
 
     private void updateMenuBar() {
@@ -366,7 +347,7 @@ public class SimulationController implements GUIController {
             e.printStackTrace();
         }
 
-    /* create preferences */
+        /* create preferences */
         preferences = new PreferencesFrame(this);
         preferences.create();
         preferences.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -376,6 +357,8 @@ public class SimulationController implements GUIController {
                 transiate(GUIEvent.CANCEL);
             }
         });
+        selectedScenarioBuilder = new RandomScenarioBuilder();
+        preferences.generalPanel.scenario.addItemListener(e -> selectScenario((StartEndScenarioBuilder)e.getItem()));
         preferences.pack();
         preferences.setLocationRelativeTo(null); // center on screen; close to setVisible
         preferences.setVisible(false);
@@ -383,7 +366,7 @@ public class SimulationController implements GUIController {
         mapviewer.addOverlay(0, vehicleOverlay);
         mapviewer.addOverlay(1, scenarioOverlay);
 
-    /* setup JFrame */
+        /* setup JFrame */
         menubar.menuMap.addActions(this);
         menubar.menuLogic.addActions(this);
         // todo toolbar for icons for run etc.
@@ -394,14 +377,14 @@ public class SimulationController implements GUIController {
         frame.setSize(TileBasedMapViewer.INITIAL_WINDOW_WIDTH, TileBasedMapViewer.INITIAL_WINDOW_HEIGHT);
         frame.add(mapviewer.getVisualizationPanel());
 
-    /*
-     * Note: JOGL automatically calls glViewport, we need to make sure that this
-     * function is not called with a height or width of 0! Otherwise the program
-     * crashes.
-     */
+        /*
+         * Note: JOGL automatically calls glViewport, we need to make sure that this
+         * function is not called with a height or width of 0! Otherwise the program
+         * crashes.
+         */
         frame.setMinimumSize(new Dimension(100, 100));
 
-    /* on close: stop the visualization and exit */
+        /* on close: stop the visualization and exit */
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 exit();
@@ -445,7 +428,7 @@ public class SimulationController implements GUIController {
         frame.setTitle("Calculating vehicle routes 0%");
 
         /* create the simulation */
-        simulation = currentScenarioBuilder.create(currentScenarioDescription, config, streetgraph,
+        simulation = selectedScenarioBuilder.create(selectedScenarioDescription, config, streetgraph,
                 vehicleOverlay.getVehicleFactory());
 
         vehicleOverlay.setSimulation(simulation);
@@ -523,6 +506,7 @@ public class SimulationController implements GUIController {
 //                lock_gui.unlock(); // todo N = new sim and resetView centers view // todo lock
 //                cleanupSimulation(); // todo lock
                 streetgraph = result.streetgraph;
+                backupScenarioDescription = null;
 
                 mapviewer.changeMap(result);
                 frame.setTitle("MicroTrafficSim - " + file.getName());
@@ -543,15 +527,20 @@ public class SimulationController implements GUIController {
     |=============|
     */
     private void showPreferences() {
+        backupScenarioBuilder = selectedScenarioBuilder;
+        selectScenario(selectedScenarioBuilder);
+        backupScenarioDescription = selectedScenarioDescription;
+        scenarioOverlay.enable();
         boolean newSim = state == GUIState.SIM_NEW;
 
-    /* set enabled */
+        /* set enabled */
         // general
         preferences.setEnabled(PrefElement.sliderSpeedup,                   PrefElement.sliderSpeedup.isEnabled());
         preferences.setEnabled(PrefElement.ageForPause,                     PrefElement.ageForPause.isEnabled());
         preferences.setEnabled(PrefElement.maxVehicleCount,       newSim && PrefElement.maxVehicleCount.isEnabled());
         preferences.setEnabled(PrefElement.seed,                  newSim && PrefElement.seed.isEnabled());
         preferences.setEnabled(PrefElement.metersPerCell,         newSim &&  PrefElement.metersPerCell.isEnabled());
+        preferences.setEnabled(PrefElement.scenarioChooser,       newSim && PrefElement.scenarioChooser.isEnabled());
         // crossing logic
         preferences.setEnabled(PrefElement.edgePriority,          newSim && PrefElement.edgePriority.isEnabled());
         preferences.setEnabled(PrefElement.priorityToThe,         newSim && PrefElement.priorityToThe.isEnabled());
@@ -564,10 +553,10 @@ public class SimulationController implements GUIController {
         preferences.setEnabled(PrefElement.vehiclesPerRunnable,             PrefElement.vehiclesPerRunnable.isEnabled());
         preferences.setEnabled(PrefElement.nodesPerThread,                  PrefElement.nodesPerThread.isEnabled());
 
-    /* init values */
+        /* init values */
         preferences.setSettings(config);
 
-    /* show */
+        /* show */
         preferences.setVisible(true);
         preferences.toFront();
     }
@@ -585,8 +574,25 @@ public class SimulationController implements GUIController {
         }
     }
 
-    private void closePreferences() {
+    private void closePreferences(boolean canceled) {
         preferences.setVisible(false);
         preferences.setAllEnabled(false);
+        scenarioOverlay.disable();
+        if (canceled) {
+            selectedScenarioBuilder = backupScenarioBuilder;
+            selectedScenarioDescription = backupScenarioDescription;
+        }
+    }
+
+    /*
+    |==================|
+    | scenario overlay |
+    |==================|
+    */
+    private void selectScenario(StartEndScenarioBuilder builder) {
+        selectedScenarioBuilder = builder;
+        selectedScenarioDescription = builder.createDescription(streetgraph);
+        scenarioOverlay.setStartPolygons(selectedScenarioDescription.start.keySet());
+        scenarioOverlay.setEndPolygons(selectedScenarioDescription.end.keySet());
     }
 }

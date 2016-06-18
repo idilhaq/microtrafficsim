@@ -7,7 +7,7 @@ public enum GUIEvent {
   CREATE,
   LOAD_MAP,
   DID_PARSE,
-  NEW_SIM,
+  PREPARE_NEW_SIM,
   ACCEPT,
   CANCEL,
   EDIT_SIM,

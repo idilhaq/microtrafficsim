@@ -49,11 +49,11 @@ class MTSMenuLogic extends JMenu {
             KeyEvent.VK_COMMA,
             e -> guiController.transiate(GUIEvent.EDIT_SIM)
     );
-    itemNewSim.addActionListener(e -> guiController.transiate(GUIEvent.NEW_SIM));
+    itemNewSim.addActionListener(e -> guiController.transiate(GUIEvent.PREPARE_NEW_SIM));
     guiController.addKeyCommand(
             KeyEvent.EVENT_KEY_RELEASED,
             KeyEvent.VK_N,
-            e -> guiController.transiate(GUIEvent.NEW_SIM)
+            e -> guiController.transiate(GUIEvent.PREPARE_NEW_SIM)
     );
   }
 }
