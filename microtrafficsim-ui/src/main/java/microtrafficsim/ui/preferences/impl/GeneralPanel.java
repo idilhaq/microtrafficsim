@@ -3,10 +3,7 @@ package microtrafficsim.ui.preferences.impl;
 import microtrafficsim.core.simulation.configs.SimulationConfig;
 import microtrafficsim.ui.preferences.IncorrectSettingsException;
 import microtrafficsim.ui.preferences.PrefElement;
-import microtrafficsim.ui.tdw.simulations.InOutScenarioBuilder;
-import microtrafficsim.ui.tdw.simulations.OutInScenarioBuilder;
-import microtrafficsim.ui.tdw.simulations.RandomScenarioBuilder;
-import microtrafficsim.ui.tdw.simulations.StartEndScenarioBuilder;
+import microtrafficsim.ui.tdw.simulations.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -89,6 +86,8 @@ public class GeneralPanel extends PreferencesPanel {
         scenario.addItem(new RandomScenarioBuilder());
         scenario.addItem(new InOutScenarioBuilder());
         scenario.addItem(new OutInScenarioBuilder());
+        scenario.addItem(new LeftRightScenarioBuilder());
+        scenario.addItem(new RightLeftScenarioBuilder());
         scenario.setSelectedIndex(0);
         // TODO: add new scenarios
         incRow();

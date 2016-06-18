@@ -11,12 +11,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 
-public class OutInScenarioBuilder extends StartEndScenarioBuilder {
+public class RightLeftScenarioBuilder extends StartEndScenarioBuilder {
 
     @Override
     public StartEndScenarioDescription createDescription(StreetGraph graph) {
 
-// TODO TODO
         /* init help variables */
         Coordinate graphCenter = new Coordinate(
                 (graph.maxlat + graph.minlat) / 2,
@@ -24,67 +23,43 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
         );
         double graphWidth = graph.maxlon - graph.minlon;
         double graphHeight = graph.maxlon - graph.minlon;
+        ISimplePolygon in;
         ISimplePolygon out;
-        ISimplePolygon[] in = new ISimplePolygon[4];
         HashSet<Node> alreadyAddedNodes = new HashSet<>();
+        ArrayList<Node> start = new ArrayList<>();
         ArrayList<Node> end = new ArrayList<>();
-        ArrayList<ArrayList<Node>> starts = new ArrayList<>(in.length);
-        for (ISimplePolygon ignored : in) starts.add(new ArrayList<>());
         boolean finished;
 
-        double percentage = 0.1;
+        double percentage = 0.25;
         boolean firstRun = true;
         do {
             /* set start/end polygons */
-            out = new RectangleArea(
-                    graphCenter.lat - 2*percentage * graphHeight,
-                    graphCenter.lon - 2*percentage * graphWidth,
-                    graphCenter.lat + 2*percentage * graphHeight,
-                    graphCenter.lon + 2*percentage * graphWidth
-            );
             // left
-            in[0] = new RectangleArea(
+            out = new RectangleArea(
                     graph.minlat,
                     graph.minlon,
                     graph.maxlat,
                     graph.minlon + percentage * graphWidth
             );
-            // bottom
-            in[1] = new RectangleArea(
-                    graph.minlat,
-                    graph.minlon + percentage * graphWidth,
-                    graph.minlat + percentage * graphHeight,
-                    graph.maxlon - percentage * graphWidth
-            );
             // right
-            in[2] = new RectangleArea(
+            in = new RectangleArea(
                     graph.minlat,
                     graph.maxlon - percentage * graphWidth,
                     graph.maxlat,
                     graph.maxlon
-            );
-            // top
-            in[3] = new RectangleArea(
-                    graph.maxlat - percentage * graphHeight,
-                    graph.minlon + percentage * graphWidth,
-                    graph.maxlat,
-                    graph.maxlon - percentage * graphWidth
             );
 
 
             for (Node node : graph.getNodeSet()) {
                 if (!alreadyAddedNodes.contains(node)) {
                     boolean added = false;
+                    if ((firstRun || start.isEmpty()) && in.contains(node)) {
+                        start.add(node);
+                        added = true;
+                    }
                     if ((firstRun || end.isEmpty()) && out.contains(node)) {
                         end.add(node);
                         added = true;
-                    }
-                    for (int i = 0; i < in.length; i++) {
-                        if ((firstRun || starts.get(i).isEmpty()) && in[i].contains(node)) {
-                            starts.get(i).add(node);
-                            added = true;
-                            break;
-                        }
                     }
                     if (added)
                         alreadyAddedNodes.add(node);
@@ -93,10 +68,7 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
 
 
             /* prepare next run */
-            finished = !end.isEmpty();
-            for (ArrayList<Node> start : starts) {
-                finished = finished && !start.isEmpty();
-            }
+            finished = !start.isEmpty() && !end.isEmpty();
             percentage = percentage + 0.1;
             finished = finished || (percentage > 1);
             firstRun = false;
@@ -104,12 +76,11 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
 
 
         /* return */
-        HashMap<ISimplePolygon, ArrayList<Node>> endMap = new HashMap<>();
         HashMap<ISimplePolygon, ArrayList<Node>> startMap = new HashMap<>();
+        HashMap<ISimplePolygon, ArrayList<Node>> endMap = new HashMap<>();
 
-        for (int i = 0; i < starts.size(); i++) {
-            startMap.put(in[i], starts.get(i));
-        }
+
+        startMap.put(in, start);
         endMap.put(out, end);
 
         return new StartEndScenarioDescription(startMap, endMap);
@@ -117,6 +88,6 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
 
     @Override
     public String toString() {
-        return "out->in";
+        return "right->left";
     }
 }
