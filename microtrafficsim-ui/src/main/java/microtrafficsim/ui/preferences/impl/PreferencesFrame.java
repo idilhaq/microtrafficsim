@@ -141,6 +141,7 @@ public class PreferencesFrame extends JFrame implements Preferences {
       case maxVehicleCount:
       case seed:
       case metersPerCell:
+      case scenarioChooser:
         generalPanel.setEnabled(id, enabled);
         break;
       // Visualization

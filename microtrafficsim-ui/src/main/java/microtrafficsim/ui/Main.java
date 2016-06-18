@@ -1,6 +1,5 @@
 package microtrafficsim.ui;
 
-import microtrafficsim.core.simulation.scenarios.RandomRouteScenario;
 import microtrafficsim.ui.gui.GUIController;
 import microtrafficsim.ui.gui.GUIEvent;
 import microtrafficsim.ui.gui.SimulationController;
@@ -37,6 +36,7 @@ public class Main {
         PrefElement.maxVehicleCount.setEnabled(true);
         PrefElement.seed.setEnabled(true);
         PrefElement.metersPerCell.setEnabled(false);
+        PrefElement.scenarioChooser.setEnabled(true);
         // Visualization
         PrefElement.projection.setEnabled(false);
         // crossing logic

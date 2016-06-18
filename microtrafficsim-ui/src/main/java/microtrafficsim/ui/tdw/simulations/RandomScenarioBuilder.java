@@ -13,8 +13,6 @@ public class RandomScenarioBuilder extends StartEndScenarioBuilder {
 
     @Override
     public StartEndScenarioDescription createDescription(StreetGraph graph) {
-        // TODO
-
         ArrayList<Node> start = new ArrayList<>();
         ArrayList<Node> end = new ArrayList<>();
 
