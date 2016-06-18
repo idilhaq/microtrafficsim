@@ -30,15 +30,15 @@ public class InOutScenarioBuilder extends StartEndScenarioBuilder {
         for (ISimplePolygon ignored : out) ends.add(new ArrayList<>());
         boolean finished;
 
-        double percentage = 0.2;
+        double percentage = 0.1;
         boolean firstRun = true;
         do {
             /* set start/end polygons */
             in = new RectangleArea(
-                    graphCenter.lat - percentage * graphHeight,
-                    graphCenter.lon - percentage * graphWidth,
-                    graphCenter.lat + percentage * graphHeight,
-                    graphCenter.lon + percentage * graphWidth
+                    graphCenter.lat - 2*percentage * graphHeight,
+                    graphCenter.lon - 2*percentage * graphWidth,
+                    graphCenter.lat + 2*percentage * graphHeight,
+                    graphCenter.lon + 2*percentage * graphWidth
             );
             // left
             out[0] = new RectangleArea(

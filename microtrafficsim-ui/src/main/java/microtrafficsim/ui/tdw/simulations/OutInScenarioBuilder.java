@@ -32,7 +32,7 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
         for (ISimplePolygon ignored : out) ends.add(new ArrayList<>());
         boolean finished;
 
-        double percentage = 0.2;
+        double percentage = 0.1;
         boolean firstRun = true;
         do {
             /* set start/end polygons */
@@ -47,28 +47,28 @@ public class OutInScenarioBuilder extends StartEndScenarioBuilder {
                     graph.minlat,
                     graph.minlon,
                     graph.maxlat,
-                    graph.minlon + percentage * graphWidth
+                    graph.minlon + 2*percentage * graphWidth
             );
             // bottom
             out[1] = new RectangleArea(
                     graph.minlat,
-                    graph.minlon + percentage * graphWidth,
-                    graph.minlat + percentage * graphHeight,
-                    graph.maxlon - percentage * graphWidth
+                    graph.minlon + 2*percentage * graphWidth,
+                    graph.minlat + 2*percentage * graphHeight,
+                    graph.maxlon - 2*percentage * graphWidth
             );
             // right
             out[2] = new RectangleArea(
                     graph.minlat,
-                    graph.maxlon - percentage * graphWidth,
+                    graph.maxlon - 2*percentage * graphWidth,
                     graph.maxlat,
                     graph.maxlon
             );
             // top
             out[3] = new RectangleArea(
-                    graph.maxlat - percentage * graphHeight,
-                    graph.minlon + percentage * graphWidth,
+                    graph.maxlat - 2*percentage * graphHeight,
+                    graph.minlon + 2*percentage * graphWidth,
                     graph.maxlat,
-                    graph.maxlon - percentage * graphWidth
+                    graph.maxlon - 2*percentage * graphWidth
             );
 
 
